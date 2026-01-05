@@ -10,6 +10,7 @@
     <meta name="apple-mobile-web-app-title" content="Reef Master">
     <meta name="application-name" content="Reef Master">
     <meta name="theme-color" content="#121212">
+
     <style>
         :root {
             --bg-color: #121212;
@@ -21,6 +22,10 @@
             --highlight: #ff9800;
             --danger: #cf6679;
             --mag-color: #9c27b0;
+            --nt-color: #4caf50;
+            /* NT Labs Green */
+            --hanna-blue: #4a90e2;
+            /* Hanna Blue Color */
         }
 
         body {
@@ -115,6 +120,24 @@
             background: #2a0e30;
         }
 
+        .btn-nt {
+            border-color: var(--nt-color);
+        }
+
+        .btn-nt:hover {
+            background: #0e3011;
+        }
+
+        .section-header {
+            grid-column: span 2;
+            text-align: left;
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 15px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
         .btn-nav {
             padding: 15px 30px;
             margin: 10px;
@@ -186,6 +209,7 @@
             position: relative;
         }
 
+        /* Standard Cuvette */
         .cuvette {
             width: 40px;
             height: 70px;
@@ -196,7 +220,6 @@
             transform-origin: center center;
         }
 
-        /* The "Water" inside */
         .cuvette::after {
             content: '';
             position: absolute;
@@ -205,11 +228,9 @@
             right: 3px;
             height: 70%;
             background: rgba(0, 188, 212, 0.6);
-            /* Blue tint */
             border-radius: 0 0 10px 10px;
         }
 
-        /* The "Cap" */
         .cuvette::before {
             content: '';
             position: absolute;
@@ -223,9 +244,58 @@
             z-index: 2;
         }
 
-        /* --- ANIMATION KEYFRAMES --- */
+        /* NEW: White & Blue Hanna Probe Graphic */
+        .probe {
+            width: 20px;
+            height: 110px;
+            background: #fff;
+            /* White body */
+            border: 1px solid #ccc;
+            border-radius: 4px 4px 8px 8px;
+            position: relative;
+            transform-origin: center 20%;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
 
-        /* 1. Invert (Rotate 180) */
+        /* Probe Tip with Sensor */
+        .probe::after {
+            content: '';
+            position: absolute;
+            bottom: 8px;
+            left: 5px;
+            width: 8px;
+            height: 8px;
+            background: #333;
+            border-radius: 50%;
+            /* Sensor */
+        }
+
+        /* Blue Top Detail */
+        .probe::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 15px;
+            background: var(--hanna-blue);
+            border-radius: 4px 4px 0 0;
+        }
+
+        /* The separate blue cap sitting next to it */
+        .probe-cap {
+            width: 25px;
+            height: 15px;
+            background: var(--hanna-blue);
+            border-radius: 4px;
+            position: absolute;
+            bottom: 10px;
+            margin-left: 40px;
+            /* Sit next to probe */
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Animations */
         @keyframes invertAnim {
             0% {
                 transform: rotate(0deg);
@@ -244,7 +314,6 @@
             }
         }
 
-        /* 2. Shake (Vibrate) */
         @keyframes shakeAnim {
             0% {
                 transform: translate(0, 0) rotate(0deg);
@@ -275,7 +344,6 @@
             }
         }
 
-        /* 3. Rock (Gentle Tilt) */
         @keyframes rockAnim {
             0% {
                 transform: rotate(-15deg);
@@ -290,7 +358,6 @@
             }
         }
 
-        /* 4. Insert (Drop Down) */
         @keyframes insertAnim {
             0% {
                 transform: translateY(-50px);
@@ -308,20 +375,6 @@
             }
         }
 
-        /* 5. Clean (Wipe) - Uses a pseudo element on a wrapper */
-        .wipe-cloth {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background: #fff;
-            border-radius: 4px;
-            opacity: 0.8;
-            top: 40%;
-            left: 50%;
-            animation: wipeAnim 1.5s infinite ease-in-out;
-            z-index: 10;
-        }
-
         @keyframes wipeAnim {
             0% {
                 transform: translate(-40px, 0);
@@ -334,20 +387,6 @@
             100% {
                 transform: translate(-40px, 0);
             }
-        }
-
-        /* 6. Add (Drop) - Uses a pseudo element */
-        .drop {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: var(--secondary);
-            border-radius: 50%;
-            top: 0;
-            left: 50%;
-            margin-left: -5px;
-            animation: dropAnim 1.5s infinite linear;
-            z-index: 10;
         }
 
         @keyframes dropAnim {
@@ -372,7 +411,70 @@
             }
         }
 
-        /* Class Toggles */
+        /* Stirring motion for probe */
+        @keyframes stirAnim {
+            0% {
+                transform: rotate(0deg) translateX(0);
+            }
+
+            25% {
+                transform: rotate(5deg) translateX(5px);
+            }
+
+            50% {
+                transform: rotate(0deg) translateX(0);
+            }
+
+            75% {
+                transform: rotate(-5deg) translateX(-5px);
+            }
+
+            100% {
+                transform: rotate(0deg) translateX(0);
+            }
+        }
+
+        /* Dipping motion for probe */
+        @keyframes dipAnim {
+            0% {
+                transform: translateY(-40px);
+            }
+
+            50% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-40px);
+            }
+        }
+
+        .wipe-cloth {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #fff;
+            border-radius: 4px;
+            opacity: 0.8;
+            top: 40%;
+            left: 50%;
+            animation: wipeAnim 1.5s infinite ease-in-out;
+            z-index: 10;
+        }
+
+        .drop {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--secondary);
+            border-radius: 50%;
+            top: 0;
+            left: 50%;
+            margin-left: -5px;
+            animation: dropAnim 1.5s infinite linear;
+            z-index: 10;
+        }
+
         .anim-invert {
             animation: invertAnim 2.5s infinite ease-in-out;
         }
@@ -388,6 +490,14 @@
         .anim-insert {
             animation: insertAnim 2s infinite ease-out;
         }
+
+        .anim-stir {
+            animation: stirAnim 1s infinite ease-in-out;
+        }
+
+        .anim-dip {
+            animation: dipAnim 2s infinite ease-in-out;
+        }
     </style>
 </head>
 
@@ -396,15 +506,26 @@
     <div class="container" id="app">
 
         <div id="menu-screen">
-            <h1>BLACKMON REEF TEST</h1>
-            <p>Select a parameter to test:</p>
+            <h1>REEF MASTER</h1>
+            <p>Select a parameter:</p>
             <div class="grid">
+
+                <div class="section-header" style="margin-top:0;">HANNA INSTRUMENTS</div>
+
+                <button onclick="startTest('salinity')" style="grid-column: span 2; border-color: #888;">Salinity
+                    (HI98319)</button>
+
                 <button onclick="startTest('alk')">Alkalinity (HI772)</button>
                 <button onclick="startTest('calc')">Calcium (HI758)</button>
                 <button onclick="startTest('phos')">Phosphate (HI774)</button>
-                <button onclick="startTest('nitrate')">Nitrate HR (HI782)</button>
-                <button onclick="startTest('mag')" class="btn-mag" style="grid-column: span 2;">Magnesium
-                    (HI783)</button>
+                <button onclick="startTest('mag')" class="btn-mag">Magnesium (HI783)</button>
+
+                <div class="section-header">NT LABS (MULTI-TEST)</div>
+
+                <button onclick="startTest('ammonia')" class="btn-nt">Ammonia (NT)</button>
+                <button onclick="startTest('ph')" class="btn-nt">pH (NT)</button>
+                <button onclick="startTest('nitrite')" class="btn-nt">Nitrite (NT)</button>
+                <button onclick="startTest('nitrate')" class="btn-nt">Nitrate (NT)</button>
             </div>
             <button class="btn-block btn-secondary" onclick="openSheet()">View Trends (Google Sheet)</button>
         </div>
@@ -413,7 +534,8 @@
             <h2 id="test-title">Test Name</h2>
 
             <div id="anim-stage" class="hidden">
-                <div id="visual-cuvette" class="cuvette"></div>
+                <div id="visual-object" class="cuvette"></div>
+                <div id="probe-cap" class="probe-cap hidden"></div>
                 <div id="anim-extra"></div>
             </div>
 
@@ -446,8 +568,9 @@
         // ---------------------------------------------------------
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXT6g31BmZJCSAVFerYS6bzUaU1P6MdHxRzylr1dHw4qeFIeRa4vgQ064z_y9X9kK1kg/exec";
 
-        // --- Test Data with Expanded Animation Tags ---
+        // --- Test Data ---
         const tests = {
+            // --- HANNA CHECKERS ---
             alk: {
                 name: "Alkalinity",
                 title: "Alkalinity (HI772)",
@@ -496,22 +619,6 @@
                     { text: "Enter result:", isInput: true }
                 ]
             },
-            nitrate: {
-                name: "Nitrate",
-                title: "Nitrate HR (HI782)",
-                steps: [
-                    { text: "Turn Checker ON.<br>Wait for <strong>Add C.1</strong>." },
-                    { text: "Fill cuvette with <strong>10mL</strong> tank water.", anim: 'add' },
-                    { text: "Clean glass.", anim: 'clean' },
-                    { text: "Insert. Press button to Zero.<br>Wait for <strong>Add C.2</strong>.", anim: 'insert' },
-                    { text: "Remove cuvette.<br>Add <strong>1 packet</strong> reagent.", anim: 'add' },
-                    { text: "Shake vigorously <strong>2 mins</strong>.", timer: 120, anim: 'shake' },
-                    { text: "Clean glass.", anim: 'clean' },
-                    { text: "Insert cuvette.", anim: 'insert' },
-                    { text: "Press button to read.", timer: 180 },
-                    { text: "Enter result:", isInput: true }
-                ]
-            },
             mag: {
                 name: "Magnesium",
                 title: "Magnesium (HI783)",
@@ -527,6 +634,71 @@
                     { text: "Clean glass.", anim: 'clean' },
                     { text: "Insert cuvette.<br>Press button to Read.", note: "Read immediately.", anim: 'insert' },
                     { text: "Enter result:", isInput: true }
+                ]
+            },
+
+            // --- HANNA SALINITY (PROBE) ---
+            salinity: {
+                name: "Salinity",
+                title: "Salinity (HI98319)",
+                steps: [
+                    { text: "Remove cap and turn Tester <strong>ON</strong>.", type: 'probe' },
+                    { text: "Immerse probe in tank water (approx 1.5 inches).", note: "Do not touch rocks/sand.", anim: 'dip', type: 'probe' },
+                    { text: "Gently stir to remove trapped air bubbles.", anim: 'stir', type: 'probe' },
+                    { text: "Wait for stability tag (clock icon) to disappear.", type: 'probe' },
+                    { text: "Enter result (PPT or SG):", isInput: true, type: 'probe' },
+                    { text: "Rinse probe with RO/DI water and Replace cap.", type: 'probe' }
+                ]
+            },
+
+            // --- NT LABS TESTS ---
+            ammonia: {
+                name: "Ammonia",
+                title: "Ammonia (NT Labs)",
+                steps: [
+                    { text: "Fill test tube to the <strong>5ml</strong> line with tank water.", anim: 'add' },
+                    { text: "Add <strong>5 drops</strong> of Ammonia 1.", note: "Check bottle label!", anim: 'add' },
+                    { text: "Add <strong>5 drops</strong> of Ammonia 2.", anim: 'add' },
+                    { text: "Cap and shake to mix.", anim: 'shake' },
+                    { text: "Wait <strong>10 minutes</strong> for color to develop.", timer: 600 },
+                    { text: "Compare to color chart.<br>Enter result:", isInput: true }
+                ]
+            },
+            ph: {
+                name: "pH",
+                title: "pH (NT Labs)",
+                steps: [
+                    { text: "Fill test tube to the <strong>5ml</strong> line with tank water.", anim: 'add' },
+                    { text: "Add <strong>5 drops</strong> of pH Reagent.", note: "Check bottle label!", anim: 'add' },
+                    { text: "Cap and shake to mix.", anim: 'shake' },
+                    { text: "Compare to color chart immediately.", note: "Range: 7.6 - 8.8" },
+                    { text: "Enter result:", isInput: true }
+                ]
+            },
+            nitrite: {
+                name: "Nitrite",
+                title: "Nitrite (NT Labs)",
+                steps: [
+                    { text: "Fill test tube to the <strong>5ml</strong> line with tank water.", anim: 'add' },
+                    { text: "Add <strong>5 drops</strong> of Nitrite Reagent.", note: "Check bottle label!", anim: 'add' },
+                    { text: "Cap and shake to mix.", anim: 'shake' },
+                    { text: "Wait <strong>10 minutes</strong> for full color.", timer: 600 },
+                    { text: "Compare to color chart.<br>Enter result:", isInput: true }
+                ]
+            },
+            nitrate: {
+                name: "Nitrate",
+                title: "Nitrate (NT Labs)",
+                steps: [
+                    { text: "Fill test tube to the <strong>5ml</strong> line with tank water.", anim: 'add' },
+                    { text: "Add <strong>6 drops</strong> of Nitrate 1.", note: "Check bottle label!", anim: 'add' },
+                    { text: "Cap and shake for 5 seconds.", anim: 'shake' },
+                    { text: "Add <strong>6 drops</strong> of Nitrate 2.", anim: 'add' },
+                    { text: "Cap and shake for 5 seconds.", anim: 'shake' },
+                    { text: "Add <strong>6 drops</strong> of Nitrate 3.", note: "Or 1 scoop of powder if applicable.", anim: 'add' },
+                    { text: "Cap and shake for 5 seconds.", anim: 'shake' },
+                    { text: "Wait <strong>10 minutes</strong> for color.", timer: 600 },
+                    { text: "Compare to color chart.<br>Enter result:", isInput: true }
                 ]
             }
         };
@@ -548,9 +720,9 @@
             input: document.getElementById('result-value'),
             nextBtn: document.getElementById('next-btn'),
             status: document.getElementById('status-msg'),
-            // Visuals
             animStage: document.getElementById('anim-stage'),
-            cuvette: document.getElementById('visual-cuvette'),
+            visualObj: document.getElementById('visual-object'),
+            probeCap: document.getElementById('probe-cap'),
             animExtra: document.getElementById('anim-extra')
         };
 
@@ -579,33 +751,40 @@
             stopTimer();
             const step = tests[currentTestKey].steps[currentStepIndex];
 
-            // Render Text
             let html = step.text;
             if (step.note) html += `<div class="note">${step.note}</div>`;
             ui.text.innerHTML = html;
 
-            // Render Visuals (Animation)
-            ui.cuvette.className = 'cuvette'; // Reset basic class
-            ui.animExtra.innerHTML = ''; // Clear extra elements
+            // Reset Visuals
+            ui.animExtra.innerHTML = '';
+            ui.animExtra.className = '';
+            ui.visualObj.className = ''; // clear all
+            ui.probeCap.classList.add('hidden'); // hide cap by default
 
+            // Determine Object Type
+            if (step.type === 'probe') {
+                ui.visualObj.classList.add('probe');
+                ui.probeCap.classList.remove('hidden'); // Show cap for probe tests
+            } else {
+                ui.visualObj.classList.add('cuvette');
+            }
+
+            // Apply Animations
             if (step.anim) {
                 ui.animStage.classList.remove('hidden');
-
                 if (step.anim === 'clean') {
                     ui.animExtra.className = 'wipe-cloth';
-                }
-                else if (step.anim === 'add') {
+                } else if (step.anim === 'add') {
                     ui.animExtra.className = 'drop';
+                } else {
+                    ui.visualObj.classList.add(`anim-${step.anim}`);
                 }
-                else {
-                    ui.cuvette.classList.add(`anim-${step.anim}`);
-                    ui.animExtra.className = '';
-                }
+            } else if (step.type === 'probe') {
+                ui.animStage.classList.remove('hidden'); // Keep probe visible
             } else {
                 ui.animStage.classList.add('hidden');
             }
 
-            // Render Timer
             if (step.timer) {
                 ui.timerDiv.classList.remove('hidden');
                 ui.timerDisplay.innerText = formatTime(step.timer);
@@ -615,7 +794,6 @@
                 ui.timerDiv.classList.add('hidden');
             }
 
-            // Render Input
             if (step.isInput) {
                 ui.inputDiv.classList.remove('hidden');
                 ui.nextBtn.innerText = "Save to Cloud";
@@ -631,14 +809,12 @@
 
         function nextStep() {
             const step = tests[currentTestKey].steps[currentStepIndex];
-
             if (step.isInput) {
                 const val = ui.input.value;
                 if (!val) return alert("Enter a number first.");
                 sendToSheet(val);
                 return;
             }
-
             if (currentStepIndex < tests[currentTestKey].steps.length - 1) {
                 currentStepIndex++;
                 renderStep();
@@ -661,14 +837,10 @@
                 alert("Error: You haven't pasted your Script URL into the code yet!");
                 return;
             }
-
             ui.nextBtn.innerText = "Saving...";
             ui.nextBtn.disabled = true;
 
-            const payload = {
-                testName: tests[currentTestKey].name,
-                value: value
-            };
+            const payload = { testName: tests[currentTestKey].name, value: value };
 
             fetch(SCRIPT_URL, {
                 method: "POST",
@@ -692,7 +864,6 @@
                 });
         }
 
-        // --- Utilities ---
         function formatTime(s) {
             return (Math.floor(s / 60)).toString().padStart(2, '0') + ":" + (s % 60).toString().padStart(2, '0');
         }
