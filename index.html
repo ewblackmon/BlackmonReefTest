@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackmon Reef Test</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-color: #1e1e1e;
+            --primary: #00bcd4;
+            /* Reef Blue */
+            --secondary: #03dac6;
+            --text: #e0e0e0;
+            --highlight: #ff9800;
+            --danger: #cf6679;
+            --mag-color: #9c27b0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-color);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            color: var(--primary);
+            margin-top: 0;
+        }
+
+        /* Grid & Buttons */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            background: #333;
+            color: white;
+            border: 1px solid #444;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #444;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            font-weight: bold;
+        }
+
+        .btn-success {
+            background: #4caf50;
+            color: #fff;
+            border: none;
+            font-weight: bold;
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: #000;
+            border: none;
+            font-weight: bold;
+        }
+
+        .btn-mag {
+            border-color: var(--mag-color);
+        }
+
+        .btn-mag:hover {
+            background: #2a0e30;
+        }
+
+        .btn-nav {
+            padding: 15px 30px;
+            margin: 10px;
+            width: 40%;
+        }
+
+        .btn-block {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        /* Text & Inputs */
+        .instruction {
+            font-size: 1.3rem;
+            line-height: 1.5;
+            margin: 20px 0;
+            min-height: 80px;
+        }
+
+        .note {
+            font-size: 0.9rem;
+            color: #888;
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+        .bold-warn {
+            font-weight: bold;
+            color: var(--secondary);
+        }
+
+        input[type="number"] {
+            background: #333;
+            border: 2px solid var(--primary);
+            color: white;
+            padding: 15px;
+            font-size: 1.5rem;
+            border-radius: 8px;
+            width: 150px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .status-msg {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            min-height: 20px;
+        }
+
+        .timer-display {
+            font-size: 2.5rem;
+            font-family: monospace;
+            color: var(--highlight);
+            margin: 10px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* --- VISUAL ANIMATIONS --- */
+        #anim-stage {
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .cuvette {
+            width: 40px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            border-radius: 0 0 15px 15px;
+            position: relative;
+            transform-origin: center center;
+        }
+
+        /* The "Water" inside */
+        .cuvette::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            left: 3px;
+            right: 3px;
+            height: 70%;
+            background: rgba(0, 188, 212, 0.6);
+            /* Blue tint */
+            border-radius: 0 0 10px 10px;
+        }
+
+        /* The "Cap" */
+        .cuvette::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: -5px;
+            right: -5px;
+            height: 12px;
+            background: #222;
+            border: 2px solid #555;
+            border-radius: 4px;
+            z-index: 2;
+        }
+
+        /* --- ANIMATION KEYFRAMES --- */
+
+        /* 1. Invert (Rotate 180) */
+        @keyframes invertAnim {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            40% {
+                transform: rotate(180deg);
+            }
+
+            60% {
+                transform: rotate(180deg);
+            }
+
+            100% {
+                transform: rotate(0deg);
+            }
+        }
+
+        /* 2. Shake (Vibrate) */
+        @keyframes shakeAnim {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            10% {
+                transform: translate(-5px, -2px) rotate(-10deg);
+            }
+
+            20% {
+                transform: translate(5px, 2px) rotate(10deg);
+            }
+
+            30% {
+                transform: translate(-5px, 5px) rotate(-10deg);
+            }
+
+            40% {
+                transform: translate(5px, -5px) rotate(10deg);
+            }
+
+            50% {
+                transform: translate(-2px, 0) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+        }
+
+        /* 3. Rock (Gentle Tilt) */
+        @keyframes rockAnim {
+            0% {
+                transform: rotate(-15deg);
+            }
+
+            50% {
+                transform: rotate(15deg);
+            }
+
+            100% {
+                transform: rotate(-15deg);
+            }
+        }
+
+        /* 4. Insert (Drop Down) */
+        @keyframes insertAnim {
+            0% {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            50% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* 5. Clean (Wipe) - Uses a pseudo element on a wrapper */
+        .wipe-cloth {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #fff;
+            border-radius: 4px;
+            opacity: 0.8;
+            top: 40%;
+            left: 50%;
+            animation: wipeAnim 1.5s infinite ease-in-out;
+            z-index: 10;
+        }
+
+        @keyframes wipeAnim {
+            0% {
+                transform: translate(-40px, 0);
+            }
+
+            50% {
+                transform: translate(20px, 0);
+            }
+
+            100% {
+                transform: translate(-40px, 0);
+            }
+        }
+
+        /* 6. Add (Drop) - Uses a pseudo element */
+        .drop {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--secondary);
+            border-radius: 50%;
+            top: 0;
+            left: 50%;
+            margin-left: -5px;
+            animation: dropAnim 1.5s infinite linear;
+            z-index: 10;
+        }
+
+        @keyframes dropAnim {
+            0% {
+                top: -20px;
+                opacity: 1;
+            }
+
+            60% {
+                top: 40px;
+                opacity: 1;
+            }
+
+            70% {
+                top: 40px;
+                opacity: 0;
+            }
+
+            100% {
+                top: 40px;
+                opacity: 0;
+            }
+        }
+
+        /* Class Toggles */
+        .anim-invert {
+            animation: invertAnim 2.5s infinite ease-in-out;
+        }
+
+        .anim-shake {
+            animation: shakeAnim 0.3s infinite linear;
+        }
+
+        .anim-rock {
+            animation: rockAnim 2s infinite ease-in-out;
+        }
+
+        .anim-insert {
+            animation: insertAnim 2s infinite ease-out;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container" id="app">
+
+        <div id="menu-screen">
+            <h1>BLACKMON REEF TEST</h1>
+            <p>Select a parameter to test:</p>
+            <div class="grid">
+                <button onclick="startTest('alk')">Alkalinity (HI772)</button>
+                <button onclick="startTest('calc')">Calcium (HI758)</button>
+                <button onclick="startTest('phos')">Phosphate (HI774)</button>
+                <button onclick="startTest('nitrate')">Nitrate HR (HI782)</button>
+                <button onclick="startTest('mag')" class="btn-mag" style="grid-column: span 2;">Magnesium
+                    (HI783)</button>
+            </div>
+            <button class="btn-block btn-secondary" onclick="openSheet()">View Trends (Google Sheet)</button>
+        </div>
+
+        <div id="step-screen" class="hidden">
+            <h2 id="test-title">Test Name</h2>
+
+            <div id="anim-stage" class="hidden">
+                <div id="visual-cuvette" class="cuvette"></div>
+                <div id="anim-extra"></div>
+            </div>
+
+            <div class="instruction" id="step-text">Loading...</div>
+
+            <div id="result-input-container" class="hidden">
+                <p>Enter value:</p>
+                <input type="number" id="result-value" step="0.01" placeholder="0.00">
+            </div>
+
+            <div id="timer-ui" class="hidden">
+                <div class="timer-display" id="timer-countdown">00:00</div>
+                <button id="timer-btn" class="btn-primary" onclick="toggleTimer()">Start Timer</button>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <button class="btn-nav" id="back-btn" onclick="prevStep()">Back</button>
+                <button class="btn-nav btn-primary" id="next-btn" onclick="nextStep()">Next</button>
+            </div>
+            <div class="status-msg" id="status-msg"></div>
+            <button style="margin-top:20px; background:transparent; border:none; color:#666; font-size:0.9rem"
+                onclick="showMenu()">Cancel Test</button>
+        </div>
+
+    </div>
+
+    <script>
+        // ---------------------------------------------------------
+        // CONFIGURATION: PASTE YOUR GOOGLE APPS SCRIPT URL HERE
+        // ---------------------------------------------------------
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXT6g31BmZJCSAVFerYS6bzUaU1P6MdHxRzylr1dHw4qeFIeRa4vgQ064z_y9X9kK1kg/exec";
+
+        // --- Test Data with Expanded Animation Tags ---
+        const tests = {
+            alk: {
+                name: "Alkalinity",
+                title: "Alkalinity (HI772)",
+                steps: [
+                    { text: "Turn Checker ON.<br>Wait for <strong>Add C.1</strong>." },
+                    { text: "Fill cuvette with <strong>10mL</strong> tank water.", note: "Check for fingerprints.", anim: 'clean' },
+                    { text: "Insert cuvette, close lid.<br>Press button to Zero.", anim: 'insert' },
+                    { text: "Wait for <strong>Add C.2</strong>." },
+                    { text: "Remove cuvette.<br>Add <strong>1mL</strong> Reagent.", anim: 'add' },
+                    { text: "Invert gently <strong>5 times</strong>.<br><em>Do not shake.</em>", anim: 'invert' },
+                    { text: "Insert cuvette.<br>Press button to read.", anim: 'insert' },
+                    { text: "Enter result:", isInput: true }
+                ]
+            },
+            calc: {
+                name: "Calcium",
+                title: "Calcium (HI758)",
+                steps: [
+                    { text: "Turn Checker ON.<br>Wait for <strong>Add C.1</strong>." },
+                    { text: "Add <strong>1mL</strong> Reagent A to empty cuvette.", anim: 'add' },
+                    { text: "Fill to 10mL line with <strong>RO/DI WATER</strong>.", note: "Use RO/DI, NOT tank water!", anim: 'add' },
+                    { text: "Invert to mix.", anim: 'invert' },
+                    { text: "Clean cuvette glass.", anim: 'clean' },
+                    { text: "Insert cuvette. Press button to Zero.<br>Wait for <strong>Add C.2</strong>.", anim: 'insert' },
+                    { text: "Remove cuvette.<br>Add <strong>0.1mL</strong> tank water.", anim: 'add' },
+                    { text: "Add <strong>1 packet</strong> Reagent B.", anim: 'add' },
+                    { text: "Shake vigorously 15s.", timer: 15, anim: 'shake' },
+                    { text: "Wait 15s for bubbles.", timer: 15 },
+                    { text: "Insert cuvette. Press to read.", anim: 'insert' },
+                    { text: "Enter result:", isInput: true }
+                ]
+            },
+            phos: {
+                name: "Phosphate",
+                title: "Phosphate ULR (HI774)",
+                steps: [
+                    { text: "Turn Checker ON.<br>Wait for <strong>Add C.1</strong>." },
+                    { text: "Fill cuvette with <strong>10mL</strong> tank water.", anim: 'add' },
+                    { text: "Clean glass.", anim: 'clean' },
+                    { text: "Insert. Press button to Zero.<br>Wait for <strong>Add C.2</strong>.", anim: 'insert' },
+                    { text: "Remove cuvette.<br>Add <strong>1 packet</strong> reagent.", anim: 'add' },
+                    { text: "Shake gently <strong>2 mins</strong>.", timer: 120, anim: 'rock' },
+                    { text: "Clean glass again.", anim: 'clean' },
+                    { text: "Insert cuvette.", anim: 'insert' },
+                    { text: "Press and <strong>HOLD</strong> button for 3:00 timer.", timer: 180 },
+                    { text: "Enter result:", isInput: true }
+                ]
+            },
+            nitrate: {
+                name: "Nitrate",
+                title: "Nitrate HR (HI782)",
+                steps: [
+                    { text: "Turn Checker ON.<br>Wait for <strong>Add C.1</strong>." },
+                    { text: "Fill cuvette with <strong>10mL</strong> tank water.", anim: 'add' },
+                    { text: "Clean glass.", anim: 'clean' },
+                    { text: "Insert. Press button to Zero.<br>Wait for <strong>Add C.2</strong>.", anim: 'insert' },
+                    { text: "Remove cuvette.<br>Add <strong>1 packet</strong> reagent.", anim: 'add' },
+                    { text: "Shake vigorously <strong>2 mins</strong>.", timer: 120, anim: 'shake' },
+                    { text: "Clean glass.", anim: 'clean' },
+                    { text: "Insert cuvette.", anim: 'insert' },
+                    { text: "Press button to read.", timer: 180 },
+                    { text: "Enter result:", isInput: true }
+                ]
+            },
+            mag: {
+                name: "Magnesium",
+                title: "Magnesium (HI783)",
+                steps: [
+                    { text: "Turn Checker ON.<br>Wait for <strong>Add C.1</strong>." },
+                    { text: "Using 5mL syringe (<span class='bold-warn'>BLACK</span>):<br>Add <strong>4 mL</strong> of Reagent A.", anim: 'add' },
+                    { text: "Using 5mL syringe (<span class='bold-warn'>BLUE</span>):<br>Add <strong>5 mL</strong> of Tank Water.", anim: 'add' },
+                    { text: "Cap and invert gently <strong>5 times</strong>.", anim: 'invert' },
+                    { text: "Clean glass.", anim: 'clean' },
+                    { text: "Insert cuvette. Press button to Zero.<br>Wait for <strong>Add C.2</strong>.", anim: 'insert' },
+                    { text: "Remove cuvette.<br>Using 1mL syringe, add <strong>1 mL</strong> Reagent B.", anim: 'add' },
+                    { text: "Cap and invert gently <strong>5 times</strong>.", anim: 'invert' },
+                    { text: "Clean glass.", anim: 'clean' },
+                    { text: "Insert cuvette.<br>Press button to Read.", note: "Read immediately.", anim: 'insert' },
+                    { text: "Enter result:", isInput: true }
+                ]
+            }
+        };
+
+        // --- Logic ---
+        let currentTestKey = null;
+        let currentStepIndex = 0;
+        let timerInterval = null;
+
+        const ui = {
+            menu: document.getElementById('menu-screen'),
+            step: document.getElementById('step-screen'),
+            title: document.getElementById('test-title'),
+            text: document.getElementById('step-text'),
+            timerDiv: document.getElementById('timer-ui'),
+            timerDisplay: document.getElementById('timer-countdown'),
+            timerBtn: document.getElementById('timer-btn'),
+            inputDiv: document.getElementById('result-input-container'),
+            input: document.getElementById('result-value'),
+            nextBtn: document.getElementById('next-btn'),
+            status: document.getElementById('status-msg'),
+            // Visuals
+            animStage: document.getElementById('anim-stage'),
+            cuvette: document.getElementById('visual-cuvette'),
+            animExtra: document.getElementById('anim-extra')
+        };
+
+        function startTest(key) {
+            currentTestKey = key;
+            currentStepIndex = 0;
+            ui.input.value = '';
+            ui.status.innerText = '';
+            ui.menu.classList.add('hidden');
+            ui.step.classList.remove('hidden');
+            ui.title.innerText = tests[key].title;
+            renderStep();
+        }
+
+        function showMenu() {
+            stopTimer();
+            ui.step.classList.add('hidden');
+            ui.menu.classList.remove('hidden');
+        }
+
+        function openSheet() {
+            alert("Open your Google Drive to view the 'Blackmon Reef Log' sheet.");
+        }
+
+        function renderStep() {
+            stopTimer();
+            const step = tests[currentTestKey].steps[currentStepIndex];
+
+            // Render Text
+            let html = step.text;
+            if (step.note) html += `<div class="note">${step.note}</div>`;
+            ui.text.innerHTML = html;
+
+            // Render Visuals (Animation)
+            ui.cuvette.className = 'cuvette'; // Reset basic class
+            ui.animExtra.innerHTML = ''; // Clear extra elements
+
+            if (step.anim) {
+                ui.animStage.classList.remove('hidden');
+
+                if (step.anim === 'clean') {
+                    ui.animExtra.className = 'wipe-cloth';
+                }
+                else if (step.anim === 'add') {
+                    ui.animExtra.className = 'drop';
+                }
+                else {
+                    ui.cuvette.classList.add(`anim-${step.anim}`);
+                    ui.animExtra.className = '';
+                }
+            } else {
+                ui.animStage.classList.add('hidden');
+            }
+
+            // Render Timer
+            if (step.timer) {
+                ui.timerDiv.classList.remove('hidden');
+                ui.timerDisplay.innerText = formatTime(step.timer);
+                ui.timerBtn.innerText = "Start";
+                ui.timerBtn.onclick = () => runTimer(step.timer);
+            } else {
+                ui.timerDiv.classList.add('hidden');
+            }
+
+            // Render Input
+            if (step.isInput) {
+                ui.inputDiv.classList.remove('hidden');
+                ui.nextBtn.innerText = "Save to Cloud";
+                ui.nextBtn.classList.add('btn-success');
+                ui.input.focus();
+            } else {
+                ui.inputDiv.classList.add('hidden');
+                ui.nextBtn.innerText = (currentStepIndex === tests[currentTestKey].steps.length - 1) ? "Finish" : "Next";
+                ui.nextBtn.classList.remove('btn-success');
+                ui.nextBtn.classList.add('btn-primary');
+            }
+        }
+
+        function nextStep() {
+            const step = tests[currentTestKey].steps[currentStepIndex];
+
+            if (step.isInput) {
+                const val = ui.input.value;
+                if (!val) return alert("Enter a number first.");
+                sendToSheet(val);
+                return;
+            }
+
+            if (currentStepIndex < tests[currentTestKey].steps.length - 1) {
+                currentStepIndex++;
+                renderStep();
+            } else {
+                showMenu();
+            }
+        }
+
+        function prevStep() {
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                renderStep();
+            } else {
+                showMenu();
+            }
+        }
+
+        function sendToSheet(value) {
+            if (SCRIPT_URL === "YOUR_SCRIPT_URL_GOES_HERE") {
+                alert("Error: You haven't pasted your Script URL into the code yet!");
+                return;
+            }
+
+            ui.nextBtn.innerText = "Saving...";
+            ui.nextBtn.disabled = true;
+
+            const payload = {
+                testName: tests[currentTestKey].name,
+                value: value
+            };
+
+            fetch(SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            })
+                .then(() => {
+                    ui.status.innerText = "Saved successfully!";
+                    ui.status.style.color = "#4caf50";
+                    setTimeout(() => {
+                        ui.nextBtn.disabled = false;
+                        showMenu();
+                    }, 1000);
+                })
+                .catch(err => {
+                    console.error(err);
+                    ui.status.innerText = "Error saving. Check console.";
+                    ui.status.style.color = "red";
+                    ui.nextBtn.disabled = false;
+                });
+        }
+
+        // --- Utilities ---
+        function formatTime(s) {
+            return (Math.floor(s / 60)).toString().padStart(2, '0') + ":" + (s % 60).toString().padStart(2, '0');
+        }
+
+        function runTimer(s) {
+            if (timerInterval) return;
+            let rem = s;
+            ui.timerDisplay.innerText = formatTime(rem);
+            ui.timerBtn.innerText = "Running...";
+            timerInterval = setInterval(() => {
+                rem--;
+                ui.timerDisplay.innerText = formatTime(rem);
+                if (rem <= 0) {
+                    stopTimer();
+                    ui.timerDisplay.innerText = "00:00";
+                    ui.timerBtn.innerText = "Done!";
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    </script>
+</body>
+
+</html>
