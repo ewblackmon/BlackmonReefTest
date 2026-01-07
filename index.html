@@ -564,9 +564,9 @@
 
     <script>
         // ---------------------------------------------------------
-        // CONFIGURATION: PASTE YOUR GOOGLE APPS SCRIPT URL HERE
+        // CONFIGURATION: PASTE YOUR GOOGLE APPS SCRIPT URL HERE 
         // ---------------------------------------------------------
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXT6g31BmZJCSAVFerYS6bzUaU1P6MdHxRzylr1dHw4qeFIeRa4vgQ064z_y9X9kK1kg/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3V-iweHRq4z8TWC6hmTOqPyKzP7LbVMLbnEH5fHmqF6PxY9OcW4SQQeQJYfIedkwb9Q/exec";
 
         // --- Test Data ---
         const tests = {
@@ -845,7 +845,7 @@
             fetch(SCRIPT_URL, {
                 method: "POST",
                 mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "text/plain" },
                 body: JSON.stringify(payload)
             })
                 .then(() => {
