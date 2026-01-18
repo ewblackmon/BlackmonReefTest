@@ -319,6 +319,90 @@
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
         }
 
+        /* --- TRENDS MODAL STYLES --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: var(--card-color);
+            width: 95%;
+            max-width: 700px;
+            height: 80vh;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #333;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .modal-body {
+            flex: 1;
+            overflow: auto;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: var(--danger);
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 0 10px;
+        }
+
+        /* Data Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background: #252525;
+            color: var(--primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+
+        tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .loading-spinner {
+            font-size: 1.2rem;
+            color: var(--highlight);
+            margin-top: 50px;
+        }
+
         /* Animations */
         @keyframes invertAnim {
             0% {
@@ -527,6 +611,18 @@
 
     <div class="container" id="app">
 
+        <div id="trends-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Reef Log</h2>
+                    <button class="close-btn" onclick="closeSheet()">✕</button>
+                </div>
+                <div class="modal-body" id="trends-body">
+                    <div class="loading-spinner">Fetching Data...</div>
+                </div>
+            </div>
+        </div>
+
         <div id="menu-screen">
             <h1>REEF MASTER</h1>
 
@@ -552,7 +648,7 @@
                 <button onclick="startTest('nitrite')" class="btn-nt">Nitrite (NT)</button>
                 <button onclick="startTest('nitrate')" class="btn-nt">Nitrate (NT)</button>
             </div>
-            <button class="btn-block btn-secondary" onclick="openSheet()">View Trends (Google Sheet)</button>
+            <button class="btn-block btn-secondary" onclick="openSheet()">View Trends (Sheet Data)</button>
         </div>
 
         <div id="step-screen" class="hidden">
@@ -597,28 +693,20 @@
         let deferredPrompt;
         const installBtn = document.getElementById('install-btn');
 
-        // 1. Listen for the 'beforeinstallprompt' event
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
             installBtn.classList.remove('hidden');
         });
 
-        // 2. Handle the click
         installBtn.addEventListener('click', (e) => {
             installBtn.classList.add('hidden');
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('User accepted the A2HS prompt');
-                } else {
-                    installBtn.classList.remove('hidden');
-                }
                 deferredPrompt = null;
             });
         });
 
-        // 3. Register Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
@@ -778,7 +866,11 @@
             animStage: document.getElementById('anim-stage'),
             visualObj: document.getElementById('visual-object'),
             probeCap: document.getElementById('probe-cap'),
-            animExtra: document.getElementById('anim-extra')
+            animExtra: document.getElementById('anim-extra'),
+
+            // Modal Elements
+            modal: document.getElementById('trends-modal'),
+            modalBody: document.getElementById('trends-body')
         };
 
         function startTest(key) {
@@ -798,9 +890,50 @@
             ui.menu.classList.remove('hidden');
         }
 
+        // --- NEW TRENDS LOGIC ---
         function openSheet() {
-            alert("Open your Google Drive to view the 'Blackmon Reef Log' sheet.");
+            ui.modal.classList.remove('hidden');
+            ui.modalBody.innerHTML = '<div class="loading-spinner">Fetching Data...</div>';
+
+            fetch(SCRIPT_URL)
+                .then(res => res.json())
+                .then(data => {
+                    renderTable(data);
+                })
+                .catch(err => {
+                    ui.modalBody.innerHTML = '<p style="color:red">Error loading data.</p>';
+                });
         }
+
+        function closeSheet() {
+            ui.modal.classList.add('hidden');
+        }
+
+        function renderTable(data) {
+            if (!data || data.length === 0) {
+                ui.modalBody.innerHTML = '<p>No data found.</p>';
+                return;
+            }
+
+            let html = '<table><thead><tr>';
+            // Headers
+            data[0].forEach(head => {
+                html += `<th>${head}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            // Rows
+            for (let i = 1; i < data.length; i++) {
+                html += '<tr>';
+                data[i].forEach(cell => {
+                    html += `<td>${cell}</td>`;
+                });
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
+            ui.modalBody.innerHTML = html;
+        }
+        // ------------------------
 
         function renderStep() {
             stopTimer();
@@ -810,21 +943,18 @@
             if (step.note) html += `<div class="note">${step.note}</div>`;
             ui.text.innerHTML = html;
 
-            // Reset Visuals
             ui.animExtra.innerHTML = '';
             ui.animExtra.className = '';
-            ui.visualObj.className = ''; // clear all
-            ui.probeCap.classList.add('hidden'); // hide cap by default
+            ui.visualObj.className = '';
+            ui.probeCap.classList.add('hidden');
 
-            // Determine Object Type
             if (step.type === 'probe') {
                 ui.visualObj.classList.add('probe');
-                ui.probeCap.classList.remove('hidden'); // Show cap for probe tests
+                ui.probeCap.classList.remove('hidden');
             } else {
                 ui.visualObj.classList.add('cuvette');
             }
 
-            // Apply Animations
             if (step.anim) {
                 ui.animStage.classList.remove('hidden');
                 if (step.anim === 'clean') {
@@ -835,7 +965,7 @@
                     ui.visualObj.classList.add(`anim-${step.anim}`);
                 }
             } else if (step.type === 'probe') {
-                ui.animStage.classList.remove('hidden'); // Keep probe visible
+                ui.animStage.classList.remove('hidden');
             } else {
                 ui.animStage.classList.add('hidden');
             }
@@ -888,7 +1018,6 @@
         }
 
         function sendToSheet(value) {
-            // Note: In a PWA context, ensure this URL is correct and accessible.
             if (SCRIPT_URL.includes("YOUR_SCRIPT_URL")) {
                 alert("Error: Script URL missing.");
                 return;
