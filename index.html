@@ -799,7 +799,7 @@
                 name: "Ammonia",
                 title: "Ammonia (NT Labs)",
                 steps: [
-                    { text: "Fill test tube to the <strong>5ml</strong> line with tank water.", anim: 'add' },
+                    { text: "Fill test tube with <strong>1mL</strong> of tank water.", anim: 'add' },
                     { text: "Add <strong>5 drops</strong> of Ammonia 1.", note: "Check bottle label!", anim: 'add' },
                     { text: "Add <strong>5 drops</strong> of Ammonia 2.", anim: 'add' },
                     { text: "Add <strong>5 drops</strong> of Ammonia 3.", anim: 'add' },
@@ -826,7 +826,7 @@
                     { text: "Fill test tube to the <strong>5ml</strong> line with tank water.", anim: 'add' },
                     { text: "Add <strong>5 drops</strong> of Nitrite Reagent.", note: "Check bottle label!", anim: 'add' },
                     { text: "Cap and shake to mix.", anim: 'shake' },
-                    { text: "Wait <strong>10 minutes</strong> for full color.", timer: 600 },
+                    { text: "Wait <strong>2 minutes</strong> for full color.", timer: 120 },
                     { text: "Compare to color chart.<br>Enter result:", isInput: true }
                 ]
             },
@@ -835,11 +835,10 @@
                 title: "Nitrate (NT Labs)",
                 steps: [
                     { text: "Fill test tube to the <strong>5ml</strong> line with tank water.", anim: 'add' },
+                    { text: "Shake <strong>Reagent 1 bottle</strong> for 30 seconds.", timer: 30, anim: 'shake' },
                     { text: "Add <strong>6 drops</strong> of Nitrate 1.", note: "Check bottle label!", anim: 'add' },
                     { text: "Cap and shake for 5 seconds.", anim: 'shake' },
                     { text: "Add <strong>6 drops</strong> of Nitrate 2.", anim: 'add' },
-                    { text: "Cap and shake for 5 seconds.", anim: 'shake' },
-                    { text: "Add <strong>6 drops</strong> of Nitrate 3.", note: "Or 1 scoop of powder if applicable.", anim: 'add' },
                     { text: "Cap and shake for 5 seconds.", anim: 'shake' },
                     { text: "Wait <strong>10 minutes</strong> for color.", timer: 600 },
                     { text: "Compare to color chart.<br>Enter result:", isInput: true }
