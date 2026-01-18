@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blackmon Reef Test</title>
+
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
     <meta name="apple-mobile-web-app-title" content="Reef Master">
@@ -26,6 +28,8 @@
             /* NT Labs Green */
             --hanna-blue: #4a90e2;
             /* Hanna Blue Color */
+            --install-color: #76ff03;
+            /* Bright Green for Install */
         }
 
         body {
@@ -112,6 +116,32 @@
             font-weight: bold;
         }
 
+        .btn-install {
+            background: var(--install-color);
+            color: #000;
+            border: none;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(118, 255, 3, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(118, 255, 3, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(118, 255, 3, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(118, 255, 3, 0);
+            }
+        }
+
         .btn-mag {
             border-color: var(--mag-color);
         }
@@ -195,7 +225,7 @@
         }
 
         .hidden {
-            display: none;
+            display: none !important;
         }
 
         /* --- VISUAL ANIMATIONS --- */
@@ -209,7 +239,7 @@
             position: relative;
         }
 
-        /* Standard Cuvette */
+        /* Cuvette */
         .cuvette {
             width: 40px;
             height: 70px;
@@ -244,12 +274,11 @@
             z-index: 2;
         }
 
-        /* NEW: White & Blue Hanna Probe Graphic */
+        /* Probe */
         .probe {
             width: 20px;
             height: 110px;
             background: #fff;
-            /* White body */
             border: 1px solid #ccc;
             border-radius: 4px 4px 8px 8px;
             position: relative;
@@ -257,7 +286,6 @@
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
         }
 
-        /* Probe Tip with Sensor */
         .probe::after {
             content: '';
             position: absolute;
@@ -267,10 +295,8 @@
             height: 8px;
             background: #333;
             border-radius: 50%;
-            /* Sensor */
         }
 
-        /* Blue Top Detail */
         .probe::before {
             content: '';
             position: absolute;
@@ -282,7 +308,6 @@
             border-radius: 4px 4px 0 0;
         }
 
-        /* The separate blue cap sitting next to it */
         .probe-cap {
             width: 25px;
             height: 15px;
@@ -291,7 +316,6 @@
             position: absolute;
             bottom: 10px;
             margin-left: 40px;
-            /* Sit next to probe */
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
         }
 
@@ -411,7 +435,6 @@
             }
         }
 
-        /* Stirring motion for probe */
         @keyframes stirAnim {
             0% {
                 transform: rotate(0deg) translateX(0);
@@ -434,7 +457,6 @@
             }
         }
 
-        /* Dipping motion for probe */
         @keyframes dipAnim {
             0% {
                 transform: translateY(-40px);
@@ -507,6 +529,9 @@
 
         <div id="menu-screen">
             <h1>REEF MASTER</h1>
+
+            <button id="install-btn" class="btn-block btn-install hidden">⬇ Install App</button>
+
             <p>Select a parameter:</p>
             <div class="grid">
 
@@ -564,9 +589,50 @@
 
     <script>
         // ---------------------------------------------------------
-        // CONFIGURATION: PASTE YOUR GOOGLE APPS SCRIPT URL HERE 
+        // CONFIGURATION: GOOGLE APPS SCRIPT URL
         // ---------------------------------------------------------
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3V-iweHRq4z8TWC6hmTOqPyKzP7LbVMLbnEH5fHmqF6PxY9OcW4SQQeQJYfIedkwb9Q/exec";
+
+        // --- PWA INSTALL LOGIC ---
+        let deferredPrompt;
+        const installBtn = document.getElementById('install-btn');
+
+        // 1. Listen for the 'beforeinstallprompt' event
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67+ from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+            // Show the install button
+            installBtn.classList.remove('hidden');
+        });
+
+        // 2. Handle the click
+        installBtn.addEventListener('click', (e) => {
+            // Hide the button (optional, or keep it until installed)
+            installBtn.classList.add('hidden');
+            // Show the install prompt
+            deferredPrompt.prompt();
+            // Wait for the user to respond to the prompt
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('User accepted the A2HS prompt');
+                } else {
+                    console.log('User dismissed the A2HS prompt');
+                    installBtn.classList.remove('hidden'); // Show again if they refused
+                }
+                deferredPrompt = null;
+            });
+        });
+
+        // 3. Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW registered!', reg))
+                    .catch(err => console.log('SW failed', err));
+            });
+        }
 
         // --- Test Data ---
         const tests = {
@@ -636,8 +702,6 @@
                     { text: "Enter result:", isInput: true }
                 ]
             },
-
-            // --- HANNA SALINITY (PROBE) ---
             salinity: {
                 name: "Salinity",
                 title: "Salinity (HI98319)",
@@ -650,8 +714,6 @@
                     { text: "Rinse probe with RO/DI water and Replace cap.", type: 'probe' }
                 ]
             },
-
-            // --- NT LABS TESTS ---
             ammonia: {
                 name: "Ammonia",
                 title: "Ammonia (NT Labs)",
@@ -833,8 +895,9 @@
         }
 
         function sendToSheet(value) {
-            if (SCRIPT_URL === "YOUR_SCRIPT_URL_GOES_HERE") {
-                alert("Error: You haven't pasted your Script URL into the code yet!");
+            // Note: In a PWA context, ensure this URL is correct and accessible.
+            if (SCRIPT_URL.includes("YOUR_SCRIPT_URL")) {
+                alert("Error: Script URL missing.");
                 return;
             }
             ui.nextBtn.innerText = "Saving...";
