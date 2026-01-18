@@ -599,27 +599,20 @@
 
         // 1. Listen for the 'beforeinstallprompt' event
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent Chrome 67+ from automatically showing the prompt
             e.preventDefault();
-            // Stash the event so it can be triggered later.
             deferredPrompt = e;
-            // Show the install button
             installBtn.classList.remove('hidden');
         });
 
         // 2. Handle the click
         installBtn.addEventListener('click', (e) => {
-            // Hide the button (optional, or keep it until installed)
             installBtn.classList.add('hidden');
-            // Show the install prompt
             deferredPrompt.prompt();
-            // Wait for the user to respond to the prompt
             deferredPrompt.userChoice.then((choiceResult) => {
                 if (choiceResult.outcome === 'accepted') {
                     console.log('User accepted the A2HS prompt');
                 } else {
-                    console.log('User dismissed the A2HS prompt');
-                    installBtn.classList.remove('hidden'); // Show again if they refused
+                    installBtn.classList.remove('hidden');
                 }
                 deferredPrompt = null;
             });
@@ -681,7 +674,7 @@
                     { text: "Shake gently <strong>2 mins</strong>.", timer: 120, anim: 'rock' },
                     { text: "Clean glass again.", anim: 'clean' },
                     { text: "Insert cuvette.", anim: 'insert' },
-                    { text: "Press and <strong>HOLD</strong> button for 3:00 timer.", timer: 180 },
+                    { text: "Press and Hold Button to start 3:00 minute timer on the device.", timer: 180 },
                     { text: "Enter result:", isInput: true }
                 ]
             },
