@@ -30,6 +30,8 @@
             /* Hanna Blue Color */
             --install-color: #76ff03;
             /* Bright Green for Install */
+            --apex-color: #ff5722;
+            /* Apex Orange */
         }
 
         body {
@@ -156,6 +158,14 @@
 
         .btn-nt:hover {
             background: #0e3011;
+        }
+
+        .btn-apex {
+            border-color: var(--apex-color);
+        }
+
+        .btn-apex:hover {
+            background: #3e1b10;
         }
 
         .section-header {
@@ -631,7 +641,12 @@
             <p>Select a parameter:</p>
             <div class="grid">
 
-                <div class="section-header" style="margin-top:0;">HANNA INSTRUMENTS</div>
+                <div class="section-header" style="margin-top:0;">APEX PROBES</div>
+
+                <button onclick="startTest('temp')" class="btn-apex">Temperature</button>
+                <button onclick="startTest('phApex')" class="btn-apex">pH (Probe)</button>
+
+                <div class="section-header">HANNA INSTRUMENTS</div>
 
                 <button onclick="startTest('salinity')" style="grid-column: span 2; border-color: #888;">Salinity
                     (HI98319)</button>
@@ -664,7 +679,11 @@
 
             <div id="result-input-container" class="hidden">
                 <p>Enter value:</p>
-                <input type="number" id="result-value" step="0.01" placeholder="0.00">
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <input type="number" id="result-value" step="0.01" placeholder="0.00">
+                    <button id="apex-fetch-btn" class="hidden" style="padding: 10px; background: #ff5722; width: auto;"
+                        onclick="fetchFromApex()">📡 Read</button>
+                </div>
             </div>
 
             <div id="timer-ui" class="hidden">
@@ -685,9 +704,12 @@
 
     <script>
         // ---------------------------------------------------------
-        // CONFIGURATION: GOOGLE APPS SCRIPT URL
+        // CONFIGURATION
         // ---------------------------------------------------------
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3V-iweHRq4z8TWC6hmTOqPyKzP7LbVMLbnEH5fHmqF6PxY9OcW4SQQeQJYfIedkwb9Q/exec";
+
+        // REPLACE WITH YOUR LOCAL APEX IP ADDRESS
+        const APEX_IP = "http://192.168.1.42";
 
         // --- PWA INSTALL LOGIC ---
         let deferredPrompt;
@@ -717,6 +739,22 @@
 
         // --- Test Data ---
         const tests = {
+            // --- APEX ---
+            temp: {
+                name: "Temperature",
+                title: "Temperature (Apex)",
+                steps: [
+                    { text: "Read Temperature from Apex Dashboard.", isInput: true, apexProbe: 'Temp' }
+                ]
+            },
+            phApex: {
+                name: "pH", // Maps to 'pH' column in sheet
+                title: "pH (Apex Probe)",
+                steps: [
+                    { text: "Read pH from Apex Dashboard.", isInput: true, apexProbe: 'pH' }
+                ]
+            },
+
             // --- HANNA CHECKERS ---
             alk: {
                 name: "Alkalinity",
@@ -861,6 +899,7 @@
             timerBtn: document.getElementById('timer-btn'),
             inputDiv: document.getElementById('result-input-container'),
             input: document.getElementById('result-value'),
+            apexBtn: document.getElementById('apex-fetch-btn'),
             nextBtn: document.getElementById('next-btn'),
             status: document.getElementById('status-msg'),
             animStage: document.getElementById('anim-stage'),
@@ -890,7 +929,46 @@
             ui.menu.classList.remove('hidden');
         }
 
-        // --- NEW TRENDS LOGIC ---
+        // --- APEX FETCH LOGIC ---
+        async function fetchFromApex() {
+            const step = tests[currentTestKey].steps[currentStepIndex];
+            const probeName = step.apexProbe; // 'Temp' or 'pH'
+
+            ui.apexBtn.innerText = "Connecting...";
+            ui.apexBtn.disabled = true;
+
+            try {
+                // Try fetching the Apex nstatus.json
+                const response = await fetch(`${APEX_IP}/nstatus.json`, { signal: AbortSignal.timeout(3000) });
+
+                if (!response.ok) throw new Error("Apex Unreachable");
+
+                const data = await response.json();
+
+                // Parse Logic: Look for the probe in the istat.probes array
+                let probes = [];
+                if (data.istat && data.istat.probes) probes = data.istat.probes;
+                else if (data.probes) probes = data.probes;
+
+                const match = probes.find(p => p.name.toLowerCase().includes(probeName.toLowerCase()) || p.type.toLowerCase() === probeName.toLowerCase());
+
+                if (match) {
+                    ui.input.value = parseFloat(match.value).toFixed(2); // Auto-fill
+                    ui.status.innerText = `Read from Apex: ${match.value}`;
+                    ui.status.style.color = "#4caf50";
+                } else {
+                    throw new Error(`Probe '${probeName}' not found.`);
+                }
+            } catch (err) {
+                console.error(err);
+                alert(`Could not auto-read Apex.\n\nReason: ${err.message}\n\nPlease enter value manually.`);
+            } finally {
+                ui.apexBtn.innerText = "📡 Read";
+                ui.apexBtn.disabled = false;
+            }
+        }
+
+        // --- TRENDS LOGIC ---
         function openSheet() {
             ui.modal.classList.remove('hidden');
             ui.modalBody.innerHTML = '<div class="loading-spinner">Fetching Data...</div>';
@@ -916,13 +994,11 @@
             }
 
             let html = '<table><thead><tr>';
-            // Headers
             data[0].forEach(head => {
                 html += `<th>${head}</th>`;
             });
             html += '</tr></thead><tbody>';
 
-            // Rows
             for (let i = 1; i < data.length; i++) {
                 html += '<tr>';
                 data[i].forEach(cell => {
@@ -933,7 +1009,6 @@
             html += '</tbody></table>';
             ui.modalBody.innerHTML = html;
         }
-        // ------------------------
 
         function renderStep() {
             stopTimer();
@@ -948,10 +1023,19 @@
             ui.visualObj.className = '';
             ui.probeCap.classList.add('hidden');
 
+            // Apex Logic
+            if (step.apexProbe) {
+                ui.apexBtn.classList.remove('hidden'); // Show fetch button
+                ui.animStage.classList.add('hidden');
+            } else {
+                ui.apexBtn.classList.add('hidden');
+            }
+
+            // Visuals
             if (step.type === 'probe') {
                 ui.visualObj.classList.add('probe');
                 ui.probeCap.classList.remove('hidden');
-            } else {
+            } else if (!step.apexProbe) {
                 ui.visualObj.classList.add('cuvette');
             }
 
@@ -966,6 +1050,8 @@
                 }
             } else if (step.type === 'probe') {
                 ui.animStage.classList.remove('hidden');
+            } else if (step.apexProbe) {
+                ui.animStage.classList.add('hidden');
             } else {
                 ui.animStage.classList.add('hidden');
             }
