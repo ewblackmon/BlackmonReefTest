@@ -679,11 +679,7 @@
 
             <div id="result-input-container" class="hidden">
                 <p>Enter value:</p>
-                <div style="display: flex; gap: 10px; justify-content: center;">
-                    <input type="number" id="result-value" step="0.01" placeholder="0.00">
-                    <button id="apex-fetch-btn" class="hidden" style="padding: 10px; background: #ff5722; width: auto;"
-                        onclick="fetchFromApex()">📡 Read</button>
-                </div>
+                <input type="number" id="result-value" step="0.01" placeholder="0.00">
             </div>
 
             <div id="timer-ui" class="hidden">
@@ -707,9 +703,6 @@
         // CONFIGURATION
         // ---------------------------------------------------------
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3V-iweHRq4z8TWC6hmTOqPyKzP7LbVMLbnEH5fHmqF6PxY9OcW4SQQeQJYfIedkwb9Q/exec";
-
-        // REPLACE WITH YOUR LOCAL APEX IP ADDRESS
-        const APEX_IP = "http://192.168.1.42";
 
         // --- PWA INSTALL LOGIC ---
         let deferredPrompt;
@@ -739,19 +732,19 @@
 
         // --- Test Data ---
         const tests = {
-            // --- APEX ---
+            // --- APEX (Manual Entry) ---
             temp: {
                 name: "Temperature",
                 title: "Temperature (Apex)",
                 steps: [
-                    { text: "Read Temperature from Apex Dashboard.", isInput: true, apexProbe: 'Temp' }
+                    { text: "Read Temperature from Apex Dashboard.", isInput: true }
                 ]
             },
             phApex: {
                 name: "pH", // Maps to 'pH' column in sheet
                 title: "pH (Apex Probe)",
                 steps: [
-                    { text: "Read pH from Apex Dashboard.", isInput: true, apexProbe: 'pH' }
+                    { text: "Read pH from Apex Dashboard.", isInput: true }
                 ]
             },
 
@@ -899,7 +892,6 @@
             timerBtn: document.getElementById('timer-btn'),
             inputDiv: document.getElementById('result-input-container'),
             input: document.getElementById('result-value'),
-            apexBtn: document.getElementById('apex-fetch-btn'),
             nextBtn: document.getElementById('next-btn'),
             status: document.getElementById('status-msg'),
             animStage: document.getElementById('anim-stage'),
@@ -927,45 +919,6 @@
             stopTimer();
             ui.step.classList.add('hidden');
             ui.menu.classList.remove('hidden');
-        }
-
-        // --- APEX FETCH LOGIC ---
-        async function fetchFromApex() {
-            const step = tests[currentTestKey].steps[currentStepIndex];
-            const probeName = step.apexProbe; // 'Temp' or 'pH'
-
-            ui.apexBtn.innerText = "Connecting...";
-            ui.apexBtn.disabled = true;
-
-            try {
-                // Try fetching the Apex nstatus.json
-                const response = await fetch(`${APEX_IP}/nstatus.json`, { signal: AbortSignal.timeout(3000) });
-
-                if (!response.ok) throw new Error("Apex Unreachable");
-
-                const data = await response.json();
-
-                // Parse Logic: Look for the probe in the istat.probes array
-                let probes = [];
-                if (data.istat && data.istat.probes) probes = data.istat.probes;
-                else if (data.probes) probes = data.probes;
-
-                const match = probes.find(p => p.name.toLowerCase().includes(probeName.toLowerCase()) || p.type.toLowerCase() === probeName.toLowerCase());
-
-                if (match) {
-                    ui.input.value = parseFloat(match.value).toFixed(2); // Auto-fill
-                    ui.status.innerText = `Read from Apex: ${match.value}`;
-                    ui.status.style.color = "#4caf50";
-                } else {
-                    throw new Error(`Probe '${probeName}' not found.`);
-                }
-            } catch (err) {
-                console.error(err);
-                alert(`Could not auto-read Apex.\n\nReason: ${err.message}\n\nPlease enter value manually.`);
-            } finally {
-                ui.apexBtn.innerText = "📡 Read";
-                ui.apexBtn.disabled = false;
-            }
         }
 
         // --- TRENDS LOGIC ---
@@ -1023,19 +976,11 @@
             ui.visualObj.className = '';
             ui.probeCap.classList.add('hidden');
 
-            // Apex Logic
-            if (step.apexProbe) {
-                ui.apexBtn.classList.remove('hidden'); // Show fetch button
-                ui.animStage.classList.add('hidden');
-            } else {
-                ui.apexBtn.classList.add('hidden');
-            }
-
             // Visuals
             if (step.type === 'probe') {
                 ui.visualObj.classList.add('probe');
                 ui.probeCap.classList.remove('hidden');
-            } else if (!step.apexProbe) {
+            } else {
                 ui.visualObj.classList.add('cuvette');
             }
 
@@ -1050,8 +995,6 @@
                 }
             } else if (step.type === 'probe') {
                 ui.animStage.classList.remove('hidden');
-            } else if (step.apexProbe) {
-                ui.animStage.classList.add('hidden');
             } else {
                 ui.animStage.classList.add('hidden');
             }
